@@ -51,4 +51,4 @@ data = agent_executor.invoke("""
 結果はmarkdownの表形式で出力して
 """)
 
-pp(data["output"])
+print(data["output"])

@@ -2,3 +2,5 @@ langchain-google-vertexai
 vertexai
 langchain-community
 google-cloud-bigquery
+sqlalchemy_bigquery
+google-cloud-bigquery-storage

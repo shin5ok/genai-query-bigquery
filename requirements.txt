@@ -1,0 +1,4 @@
+langchain-google-vertexai
+vertexai
+langchain-community
+google-cloud-bigquery

@@ -1,5 +1,4 @@
 
-
 from pprint import pprint as pp
 import os
 
@@ -12,14 +11,14 @@ from sqlalchemy import *
 from sqlalchemy.schema import *
 from sqlalchemy.dialects import registry
 
-registry.register('bigquery', 'sqlalchemy_bigquery', 'BigQueryDialect')
-
-project = os.environ.get("PROJECT_ID")
-dataset = os.environ.get("DATASET_ID", "my_dataset")
-table = os.environ.get("TABLE_ID", "spanner_analysis")
+PROJECT = os.environ.get("PROJECT_ID")
+DATASET = os.environ.get("DATASET_ID", "my_dataset")
+TABLE = os.environ.get("TABLE_ID", "spanner_analysis")
 DEBUG = "DEBUG" in os.environ
 
-sqlalchemy_url = f'bigquery://{project}/{dataset}'
+sqlalchemy_url = f'bigquery://{PROJECT}/{DATASET}'
+
+registry.register('bigquery', 'sqlalchemy_bigquery', 'BigQueryDialect')
 
 llm = ChatVertexAI(
     model="gemini-1.5-flash-001",
@@ -46,8 +45,7 @@ agent_executor = create_sql_agent(
 # 料金が1000円以下でcreated_atが2000年以前のアイテムを出して
 # 料金が1000円以下のアイテムを出して
 data = agent_executor.invoke("""
-料金が1000円以上、1200円以下でcreated_atが2000年移行のアイテムとその料金と作成日を出して
-料金の安い順に昇順で出して
+料金が1000円以上、1200円以下でcreated_atが2000年移行のアイテムとその料金と作成日を抽出して、料金の安い順に昇順で出して
 結果はmarkdownの表形式で出力して
 """)
 

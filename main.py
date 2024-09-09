@@ -1,57 +1,66 @@
-
 from pprint import pprint as pp
-import os
 
-from langchain_community.agent_toolkits.sql.base import create_sql_agent
-from langchain_community.agent_toolkits.sql.toolkit import SQLDatabaseToolkit
-from langchain_community.utilities import SQLDatabase
-from langchain_google_vertexai import ChatVertexAI
+import chainlit as cl
+from chainlit.input_widget import Select, Slider
 
-from sqlalchemy import *
-from sqlalchemy.schema import *
-from sqlalchemy.dialects import registry
-
-PROJECT = os.environ.get("PROJECT_ID")
-DATASET = os.environ.get("DATASET_ID", "my_dataset")
-TABLE = os.environ.get("TABLE_ID", "spanner_analysis")
-
-# try Spanner
-SPANNER_INSTANCE = os.environ.get("SPANNER_INSTANCE_ID")
-SPANNER_DATABASE = os.environ.get("SPANNER_DATABASE_ID")
-
-DEBUG = "DEBUG" in os.environ
-
-sqlalchemy_url = f'bigquery://{PROJECT}/{DATASET}'
-if SPANNER_INSTANCE and SPANNER_DATABASE:
-    sqlalchemy_url = f'spanner+spanner:///projects/{PROJECT}/instances/{SPANNER_INSTANCE}/databases/{SPANNER_DATABASE}'
-
-# Initializing...
-registry.register('bigquery', 'sqlalchemy_bigquery', 'BigQueryDialect')
-registry.register('spanner', 'google.cloud.sqlalchemy_spanner', 'SpannerDialect')
-
-llm = ChatVertexAI(
-    model="gemini-1.5-flash-001",
-    temperature=0,
-    max_tokens=None,
-    max_retries=6,
-    stop=None,
-    # other params...
-)
+import config as c
+import db_agent
 
 
-db = SQLDatabase.from_uri(sqlalchemy_url)
-# llm = OpenAI(temperature=0, model="text-davinci-003")
-toolkit = SQLDatabaseToolkit(db=db, llm=llm)
-agent_executor = create_sql_agent(
-    llm=llm,
-    toolkit=toolkit,
-    agent_type="zero-shot-react-description", # https://api.python.langchain.com/en/latest/agents/langchain.agents.agent_types.AgentType.html#langchain.agents.agent_types.AgentType
-    use_query_checker=True,
-    # top_k=1,
-    verbose=DEBUG,
-)
+PROJECT_ID = c.PROJECT_ID
+BUCKET_NAME = c.BUCKET_NAME
+LOCATION = c.LOCATION
 
-import order
-data = agent_executor.invoke(order.message)
+# 設定
+default_model = "Gemini-1.5-Flash"
 
-print(data["output"])
+@cl.set_chat_profiles
+async def _set_chat_profile():
+    profiles = []
+    return profiles
+
+@cl.on_chat_start
+async def _on_chat_start():
+
+    settings = await cl.ChatSettings(
+        [
+            Slider(
+                id="MAX_TOKEN_SIZE",
+                label="Max token size",
+                initial=4096,
+                min=1024,
+                max=8192,
+                step=512,
+            ),
+            Slider(
+                id="TEMPARATURE",
+                label="Temperature",
+                initial=0.6,
+                min=0,
+                max=1,
+                step=0.1,
+            ),
+        ]
+    ).send()
+    await setup_runnable(settings)
+
+@cl.on_settings_update
+async def setup_runnable(settings):
+    profile = cl.user_session.get("chat_profile")
+    return profile
+
+@cl.on_message
+async def _on_message(message: cl.Message):
+
+    session = cl.user_session.get("session")
+    if session is None:
+        pp("session is none")
+        session = "-"
+
+    response = db_agent.ask_agent(message.content)
+    # cl.user_session.set("session", response.session.name.split("/")[-1])
+    # pp(dict(session=session))
+
+    res = cl.Message(content=response)
+
+    await res.send()

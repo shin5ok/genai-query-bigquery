@@ -31,7 +31,7 @@ registry.register('spanner', 'google.cloud.sqlalchemy_spanner', 'SpannerDialect'
 
 llm = ChatVertexAI(
     model="gemini-1.5-flash-001",
-    temperature=1.0,
+    temperature=0,
     max_tokens=None,
     max_retries=6,
     stop=None,
@@ -51,11 +51,7 @@ agent_executor = create_sql_agent(
     verbose=DEBUG,
 )
 
-# 料金が1000円以下でcreated_atが2000年以前のアイテムを出して
-# 料金が1000円以下のアイテムを出して
-data = agent_executor.invoke("""
-料金が1000円以上、1200円以下でcreated_atが2000年移行のアイテムとその料金と作成日を抽出して、料金の安い順に昇順で出して
-結果はmarkdownの表形式で出力して
-""")
+import order
+data = agent_executor.invoke(order.message)
 
 print(data["output"])

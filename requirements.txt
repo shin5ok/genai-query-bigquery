@@ -4,3 +4,4 @@ langchain-community
 google-cloud-bigquery
 sqlalchemy_bigquery
 google-cloud-bigquery-storage
+sqlalchemy_spanner

@@ -14,11 +14,20 @@ from sqlalchemy.dialects import registry
 PROJECT = os.environ.get("PROJECT_ID")
 DATASET = os.environ.get("DATASET_ID", "my_dataset")
 TABLE = os.environ.get("TABLE_ID", "spanner_analysis")
+
+# try Spanner
+SPANNER_INSTANCE = os.environ.get("SPANNER_INSTANCE_ID")
+SPANNER_DATABASE = os.environ.get("SPANNER_DATABASE_ID")
+
 DEBUG = "DEBUG" in os.environ
 
 sqlalchemy_url = f'bigquery://{PROJECT}/{DATASET}'
+if SPANNER_INSTANCE and SPANNER_DATABASE:
+    sqlalchemy_url = f'spanner+spanner:///projects/{PROJECT}/instances/{SPANNER_INSTANCE}/databases/{SPANNER_DATABASE}'
 
+# Initializing...
 registry.register('bigquery', 'sqlalchemy_bigquery', 'BigQueryDialect')
+registry.register('spanner', 'google.cloud.sqlalchemy_spanner', 'SpannerDialect')
 
 llm = ChatVertexAI(
     model="gemini-1.5-flash-001",

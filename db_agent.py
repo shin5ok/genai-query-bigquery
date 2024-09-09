@@ -45,6 +45,7 @@ db = SQLDatabase.from_uri(sqlalchemy_url)
 toolkit = SQLDatabaseToolkit(db=db, llm=llm)
 
 def ask_agent(content: str = order.message):
+    print("sqlalchemy_url:", sqlalchemy_url)
 
     agent_executor = create_sql_agent(
         llm=llm,

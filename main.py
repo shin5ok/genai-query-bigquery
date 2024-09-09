@@ -1,3 +1,4 @@
+import time
 from pprint import pprint as pp
 
 import chainlit as cl
@@ -52,6 +53,9 @@ async def setup_runnable(settings):
 @cl.on_message
 async def _on_message(message: cl.Message):
 
+    start = time.time()
+
+
     session = cl.user_session.get("session")
     if session is None:
         pp("session is none")
@@ -62,5 +66,9 @@ async def _on_message(message: cl.Message):
     # pp(dict(session=session))
 
     res = cl.Message(content=response)
+
+    end = time.time()
+
+    print("Duration:", end - start)
 
     await res.send()

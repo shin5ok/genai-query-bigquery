@@ -58,7 +58,6 @@ def ask_agent(content: str = order.message):
 
     data = agent_executor.invoke(content)
 
-    print(data["output"])
     return data["output"]
 
 if __name__ == "__main__":
